@@ -1,0 +1,10 @@
+{
+  "description": "A book management app for organizing and viewing books, with controls for opening and closing book details.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
