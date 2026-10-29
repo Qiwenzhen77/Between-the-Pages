@@ -69,6 +69,8 @@ function App() {
   const [gameDay, setGameDay] = useState(1)
   const [dayStartedAt, setDayStartedAt] = useState(() => Date.now())
   const [visitorStep, setVisitorStep] = useState(0)
+  const [activeVisitor, setActiveVisitor] = useState<"brown" | "pink">("brown")
+  const [pinkVisitorClicked, setPinkVisitorClicked] = useState(false)
   const [selectedJournal, setSelectedJournal] = useState<JournalEntry | null>(
     null,
   )
@@ -155,6 +157,7 @@ function App() {
           gameDay={gameDay}
           dayStartedAt={dayStartedAt}
           visitorStep={visitorStep}
+          pinkVisitorClicked={pinkVisitorClicked}
           onSearch={setQuery}
           onBack={() => {
             setScene("entry")
@@ -166,7 +169,9 @@ function App() {
           }}
           onClose={closeLibrary}
           onBook={openBook}
-          onVisitor={() => {
+           onVisitor={(visitor) => {
+            setActiveVisitor(visitor)
+            if (visitor === "pink") setPinkVisitorClicked(true)
             setVisitorStep(1)
             setOverlay("visitor")
           }}
@@ -205,6 +210,7 @@ function App() {
       )}
       {overlay === "visitor" && (
         <VisitorDialogue
+        visitor={activeVisitor}
           step={visitorStep}
           onContinue={() => setVisitorStep(2)}
           onChoose={(memory) => {
@@ -284,12 +290,13 @@ type LibraryProps = {
   gameDay: number
   dayStartedAt: number
   visitorStep: number
+  pinkVisitorClicked: boolean
   onSearch: (value: string) => void
   onBack: () => void
   onOpen: () => void
   onClose: () => void
   onBook: (book: Book) => void
-  onVisitor: () => void
+  onVisitor: (visitor: "brown" | "pink") => void
   onJournal: () => void
 }
 
@@ -301,6 +308,7 @@ function Library({
   gameDay,
   dayStartedAt,
   visitorStep,
+  pinkVisitorClicked,
   onSearch,
   onBack,
   onOpen,
@@ -312,6 +320,7 @@ function Library({
   const [now, setNow] = useState(() => Date.now())
   const [nightNoticeDismissed, setNightNoticeDismissed] = useState(false)
   const [showVisitorPrompt, setShowVisitorPrompt] = useState(true)
+  const [showPinkPrompt, setShowPinkPrompt] = useState(true)
 
   useEffect(() => {
     setNow(Date.now())
@@ -351,6 +360,35 @@ function Library({
     }
   }, [visitorStep])
 
+  useEffect(() => {
+    if (!pinkVisitorClicked) {
+      setShowPinkPrompt(true)
+      return
+    }
+
+    setShowPinkPrompt(false)
+    let showTimer: number | undefined
+    let hideTimer: number | undefined
+
+    const schedulePrompt = () => {
+      const wait = 8000 + Math.random() * 12000
+      showTimer = window.setTimeout(() => {
+        setShowPinkPrompt(true)
+        const visibleFor = 2500 + Math.random() * 2000
+        hideTimer = window.setTimeout(() => {
+          setShowPinkPrompt(false)
+          schedulePrompt()
+        }, visibleFor)
+      }, wait)
+    }
+
+    schedulePrompt()
+    return () => {
+      if (showTimer) window.clearTimeout(showTimer)
+      if (hideTimer) window.clearTimeout(hideTimer)
+    }
+  }, [pinkVisitorClicked])
+
   const dayProgress = libraryOpen
     ? Math.min(Math.max((now - dayStartedAt) / GAME_DAY_DURATION, 0), 1)
     : 0
@@ -386,8 +424,7 @@ function Library({
             alt=""
           />
           <span className="stats">
-            {books.length} books&nbsp; I &nbsp;{libraryOpen ? 1 : 0} visitor
-            {libraryOpen ? "" : "s"}
+             {books.length} books&nbsp; I &nbsp;{libraryOpen ? 2 : 0} visitors
           </span>
         </div>
 
@@ -436,11 +473,22 @@ function Library({
         {libraryOpen && (
           <button
             className="visitor visitor-main"
-            onClick={onVisitor}
+            onClick={() => onVisitor("brown")}
             aria-label="Talk to visitor"
           >
             <span />
-            {showVisitorPrompt && <i>Something to say</i>}
+             {showVisitorPrompt && <i>Something to say</i>}
+          </button>
+        )}
+
+        {libraryOpen && (
+          <button
+            className="visitor visitor-pink"
+            onClick={() => onVisitor("pink")}
+            aria-label="Talk to pink visitor"
+          >
+            <span />
+            {showPinkPrompt && <i>Something to say</i>}
           </button>
         )}
 
@@ -578,11 +626,13 @@ function BookDetails({ book, onClose }: { book: Book onClose: () => void }) {
 }
 
 function VisitorDialogue({
+  visitor,
   step,
   onContinue,
   onChoose,
   onClose,
 }: {
+  visitor: "brown" | "pink"
   step: number
   onContinue: () => void
   onChoose: (memory: string) => void
@@ -595,7 +645,7 @@ function VisitorDialogue({
     >
       {step <= 1 && (
         <button
-          className="visitor portrait-visitor"
+           className={`visitor portrait-visitor ${visitor === "pink" ? "is-pink" : ""}`}
           onClick={(event) => {
             event.stopPropagation()
             onClose()

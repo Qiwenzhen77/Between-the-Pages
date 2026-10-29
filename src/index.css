@@ -742,6 +742,7 @@ textarea:focus-visible {
 }
 
 .visitor {
+  padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -797,7 +798,8 @@ textarea:focus-visible {
   transform: none;
 }
 
-.visitor-main i {
+.visitor-main i,
+.visitor-pink i {
   position: absolute;
   bottom: calc(100% + 0.75cqw);
   left: 50%;
@@ -813,7 +815,8 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
-.visitor-main i::after {
+.visitor-main i::after,
+.visitor-pink i::after {
   position: absolute;
   top: 100%;
   left: 50%;
@@ -823,7 +826,66 @@ textarea:focus-visible {
   transform: translateX(-50%);
 }
 
+.visitor-pink {
+  position: absolute;
+  z-index: 7;
+  top: 53%;
+  left: 89%;
+  width: 6.2%;
+  height: 9%;
+  animation: pink-visitor-wander 56s ease-in-out infinite;
+  will-change: transform;
+}
+
+.visitor-pink span,
+.portrait-visitor.is-pink span {
+  background-image: url('/assets/pink-dog.png');
+}
+
+.visitor-pink span {
+  transform-origin: center;
+  animation: pink-visitor-turn 56s steps(1, end) infinite;
+}
+
+@keyframes pink-visitor-wander {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(2cqw, 12cqw);
+  }
+  40% {
+    transform: translate(-1cqw, 22cqw);
+  }
+  60% {
+    transform: translate(1.5cqw, 30cqw);
+  }
+  80% {
+    transform: translate(-1cqw, 10cqw);
+  }
+}
+
+@keyframes pink-visitor-turn {
+  0%,
+  19.99%,
+  40%,
+  59.99%,
+  80%,
+  100% {
+    transform: scaleX(-1);
+  }
+  20%,
+  39.99%,
+  60%,
+  79.99% {
+    transform: scaleX(1);
+  }
+}
+
 .reduce-motion .visitor-main,
+.reduce-motion .visitor-pink,
+.reduce-motion .visitor-pink span,
 .reduce-motion .reader {
   animation: none !important;
 }
@@ -834,6 +896,8 @@ textarea:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .visitor-main,
+  .visitor-pink,
+  .visitor-pink span,
   .reader {
     animation: none !important;
   }
