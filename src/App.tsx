@@ -511,15 +511,21 @@ function Library({
         )}
 
         {libraryOpen && isNight && !nightNoticeDismissed && (
-          <div className="notice night-notice">
-            <h2>Closing time</h2>
-            <p>It’s 17:00. Time to close the door.</p>
-            <div>
-              <button onClick={() => setNightNoticeDismissed(true)}>
-                Later
-              </button>
-              <button onClick={onClose}>Close now</button>
-            </div>
+          <div className="notice night-notice" role="alert" aria-live="assertive">
+            <button
+              className="night-notice-close"
+              onClick={() => setNightNoticeDismissed(true)}
+              aria-label="Close closing-time notice"
+            >
+              <img src={`${A}/2c6d6.svg`} alt="" />
+            </button>
+            <h2>Notice</h2>
+            <img
+              className="night-notice-clock"
+              src={`${A}/yellow-clock.png`}
+              alt=""
+            />
+            <p>It is closing time now</p>
           </div>
         )}
       </div>

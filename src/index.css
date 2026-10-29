@@ -754,6 +754,49 @@ textarea:focus-visible {
 
 .night-notice {
   z-index: 19;
+  padding: 0.35cqw 0.8cqw 0.8cqw;
+  animation: notice-pop 260ms ease-out both;
+}
+
+.night-notice button.night-notice-close {
+  position: absolute;
+  top: 0.55cqw;
+  right: 0.6cqw;
+  width: 1.15cqw;
+  height: 1.15cqw;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.night-notice-close img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.night-notice-clock {
+  display: block;
+  width: 5.2cqw;
+  height: 5.2cqw;
+  margin: 0.35cqw auto 0.2cqw;
+  object-fit: contain;
+}
+
+.night-notice p {
+  margin-bottom: 0.2cqw;
+}
+
+@keyframes notice-pop {
+  from {
+    opacity: 0;
+    transform: translateY(0.8cqw) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .visitor {
