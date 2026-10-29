@@ -531,6 +531,33 @@ textarea:focus-visible {
   animation: reader-turn 58s steps(1, end) infinite;
 }
 
+.reader i {
+  position: absolute;
+  z-index: 2;
+  top: 17%;
+  left: 72%;
+  width: max-content;
+  padding: 0.45cqw 0.85cqw;
+  transform: translateX(-50%);
+  border-radius: 0.7cqw;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 0.2cqw 0.6cqw rgba(74, 69, 63, 0.14);
+  color: #74706f;
+  font-size: 1.15cqw;
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.reader i::after {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  border: 0.45cqw solid transparent;
+  border-top-color: rgba(255, 255, 255, 0.94);
+  content: '';
+  transform: translateX(-50%);
+}
+
 @keyframes reader-wander {
   0%,
   100% {
@@ -651,6 +678,52 @@ textarea:focus-visible {
 .book-hotspot:hover .book-label,
 .book-hotspot:focus-visible .book-outline,
 .book-hotspot:focus-visible .book-label {
+  opacity: 1;
+}
+
+.right-book-hotspot {
+  position: absolute;
+  z-index: 8;
+  top: 46.08%;
+  left: 79.88%;
+  width: 1.55%;
+  height: 6.5%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.right-book-outline {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #ffa526;
+  border-radius: 2px;
+  background: rgba(255, 150, 0, 0.24);
+  box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.21);
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.right-book-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.45cqw);
+  min-width: 8.6cqw;
+  padding: 0.35cqw 0.55cqw;
+  transform: translateX(-50%);
+  background: #74706f;
+  color: white;
+  font-size: 1.39cqw;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.right-book-hotspot:hover .right-book-outline,
+.right-book-hotspot:hover .right-book-label,
+.right-book-hotspot:focus-visible .right-book-outline,
+.right-book-hotspot:focus-visible .right-book-label {
   opacity: 1;
 }
 

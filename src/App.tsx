@@ -169,7 +169,7 @@ function App() {
           }}
           onClose={closeLibrary}
           onBook={openBook}
-           onVisitor={(visitor) => {
+          onVisitor={(visitor) => {
             setActiveVisitor(visitor)
             if (visitor === "pink") setPinkVisitorClicked(true)
             setVisitorStep(1)
@@ -210,7 +210,7 @@ function App() {
       )}
       {overlay === "visitor" && (
         <VisitorDialogue
-        visitor={activeVisitor}
+          visitor={activeVisitor}
           step={visitorStep}
           onContinue={() => setVisitorStep(2)}
           onChoose={(memory) => {
@@ -322,6 +322,9 @@ function Library({
   const [showVisitorPrompt, setShowVisitorPrompt] = useState(true)
   const [showPinkPrompt, setShowPinkPrompt] = useState(true)
   const [showOpenNotice, setShowOpenNotice] = useState(false)
+  const [showReaderPrompt, setShowReaderPrompt] = useState(false)
+  const [brownVisitorVisible, setBrownVisitorVisible] = useState(false)
+  const [pinkVisitorVisible, setPinkVisitorVisible] = useState(false)
 
   useEffect(() => {
     setNow(Date.now())
@@ -340,6 +343,37 @@ function Library({
     setShowOpenNotice(false)
     const timer = window.setTimeout(() => setShowOpenNotice(true), 3000)
     return () => window.clearTimeout(timer)
+  }, [dayStartedAt, libraryOpen])
+
+  useEffect(() => {
+    setBrownVisitorVisible(false)
+    setPinkVisitorVisible(false)
+    if (!libraryOpen) return
+
+    const firstDelay = 1500 + Math.random() * 3500
+    const secondDelay = firstDelay + 2500 + Math.random() * 5000
+    const brownArrivesFirst = Math.random() < 0.5
+
+    const firstTimer = window.setTimeout(() => {
+      if (brownArrivesFirst) {
+        setBrownVisitorVisible(true)
+      } else {
+        setPinkVisitorVisible(true)
+      }
+    }, firstDelay)
+
+    const secondTimer = window.setTimeout(() => {
+      if (brownArrivesFirst) {
+        setPinkVisitorVisible(true)
+      } else {
+        setBrownVisitorVisible(true)
+      }
+    }, secondDelay)
+
+    return () => {
+      window.clearTimeout(firstTimer)
+      window.clearTimeout(secondTimer)
+    }
   }, [dayStartedAt, libraryOpen])
 
   useEffect(() => {
@@ -400,6 +434,34 @@ function Library({
     }
   }, [pinkVisitorClicked])
 
+  useEffect(() => {
+    if (!libraryOpen) {
+      setShowReaderPrompt(false)
+      return
+    }
+
+    let showTimer: number | undefined
+    let hideTimer: number | undefined
+
+    const schedulePrompt = () => {
+      const wait = 6000 + Math.random() * 12000
+      showTimer = window.setTimeout(() => {
+        setShowReaderPrompt(true)
+        const visibleFor = 4500 + Math.random() * 1000
+        hideTimer = window.setTimeout(() => {
+          setShowReaderPrompt(false)
+          schedulePrompt()
+        }, visibleFor)
+      }, wait)
+    }
+
+    schedulePrompt()
+    return () => {
+      if (showTimer) window.clearTimeout(showTimer)
+      if (hideTimer) window.clearTimeout(hideTimer)
+    }
+  }, [dayStartedAt, libraryOpen])
+
   const dayProgress = Math.min(
     Math.max((now - dayStartedAt) / GAME_DAY_DURATION, 0),
     1,
@@ -410,6 +472,8 @@ function Library({
   )
   const gameTime = `${String(Math.floor(gameMinutes / 60)).padStart(2, "0")}:${String(gameMinutes % 60).padStart(2, "0")}`
   const isNight = dayProgress >= 1
+  const visibleVisitors =
+    Number(brownVisitorVisible) + Number(pinkVisitorVisible)
 
   return (
     <section
@@ -436,7 +500,8 @@ function Library({
             alt=""
           />
           <span className="stats">
-             {books.length} books&nbsp; I &nbsp;{libraryOpen ? 2 : 0} visitors
+            {books.length} books&nbsp; I &nbsp;{visibleVisitors} visitor
+            {visibleVisitors === 1 ? "" : "s"}
           </span>
         </div>
 
@@ -458,7 +523,10 @@ function Library({
           />
         </label>
 
-        <LibraryFurniture onShelf={() => matches[0] && onBook(matches[0])} />
+        <LibraryFurniture
+          onShelf={() => matches[0] && onBook(matches[0])}
+          showReaderPrompt={showReaderPrompt}
+        />
 
         <button
           className="book-hotspot"
@@ -468,6 +536,15 @@ function Library({
           <span className="book-label">
             {matches[0] ? `‹${matches[0].title}›` : "No book found"}
           </span>
+        </button>
+
+        <button
+          type="button"
+          className="right-book-hotspot"
+          aria-label="Harry Porter"
+        >
+          <span className="right-book-outline" />
+          <span className="right-book-label">&lt;Harry Potter&gt;</span>
         </button>
 
         {query && (
@@ -482,18 +559,18 @@ function Library({
           </div>
         )}
 
-        {libraryOpen && (
+        {libraryOpen && brownVisitorVisible && (
           <button
             className="visitor visitor-main"
             onClick={() => onVisitor("brown")}
             aria-label="Talk to visitor"
           >
             <span />
-             {showVisitorPrompt && <i>Something to say</i>}
+            {showVisitorPrompt && <i>Something to say</i>}
           </button>
         )}
 
-        {libraryOpen && (
+        {libraryOpen && pinkVisitorVisible && (
           <button
             className="visitor visitor-pink"
             onClick={() => onVisitor("pink")}
@@ -545,7 +622,13 @@ function Library({
   )
 }
 
-function LibraryFurniture({ onShelf }: { onShelf: () => void }) {
+function LibraryFurniture({
+  onShelf,
+  showReaderPrompt,
+}: {
+  onShelf: () => void
+  showReaderPrompt: boolean
+}) {
   return (
     <div className="furniture">
       <img
@@ -586,6 +669,7 @@ function LibraryFurniture({ onShelf }: { onShelf: () => void }) {
           src={`${A}/e8332.png`}
           alt="A reader carrying a tall stack of books"
         />
+        {showReaderPrompt && <i>Are there any new books today?</i>}
       </div>
       <img
         className="item cabinet"
@@ -663,7 +747,7 @@ function VisitorDialogue({
     >
       {step <= 1 && (
         <button
-           className={`visitor portrait-visitor ${visitor === "pink" ? "is-pink" : ""}`}
+          className={`visitor portrait-visitor ${visitor === "pink" ? "is-pink" : ""}`}
           onClick={(event) => {
             event.stopPropagation()
             onClose()
