@@ -827,6 +827,8 @@ textarea:focus-visible {
 
 .night-notice {
   z-index: 19;
+  top: 50%;
+  left: 50%;
   padding: 0.35cqw 0.8cqw 0.8cqw;
   animation: notice-pop 260ms ease-out both;
 }
@@ -864,11 +866,11 @@ textarea:focus-visible {
 @keyframes notice-pop {
   from {
     opacity: 0;
-    transform: translateY(0.8cqw) scale(0.96);
+    transform: translate(-50%, calc(-50% + 0.8cqw)) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
