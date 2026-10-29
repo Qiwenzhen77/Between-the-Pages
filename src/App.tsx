@@ -120,6 +120,7 @@ function App() {
   }
 
   const startLibrary = () => {
+    setDayStartedAt(Date.now())
     setScene("library")
     setOverlay("none")
   }
@@ -164,7 +165,6 @@ function App() {
             setOverlay("none")
           }}
           onOpen={() => {
-            setDayStartedAt(Date.now())
             setLibraryOpen(true)
           }}
           onClose={closeLibrary}
@@ -321,14 +321,25 @@ function Library({
   const [nightNoticeDismissed, setNightNoticeDismissed] = useState(false)
   const [showVisitorPrompt, setShowVisitorPrompt] = useState(true)
   const [showPinkPrompt, setShowPinkPrompt] = useState(true)
+  const [showOpenNotice, setShowOpenNotice] = useState(false)
 
   useEffect(() => {
     setNow(Date.now())
     setNightNoticeDismissed(false)
-    if (!libraryOpen) return
 
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(timer)
+  }, [dayStartedAt])
+
+  useEffect(() => {
+    if (libraryOpen) {
+      setShowOpenNotice(false)
+      return
+    }
+
+    setShowOpenNotice(false)
+    const timer = window.setTimeout(() => setShowOpenNotice(true), 3000)
+    return () => window.clearTimeout(timer)
   }, [dayStartedAt, libraryOpen])
 
   useEffect(() => {
@@ -389,9 +400,10 @@ function Library({
     }
   }, [pinkVisitorClicked])
 
-  const dayProgress = libraryOpen
-    ? Math.min(Math.max((now - dayStartedAt) / GAME_DAY_DURATION, 0), 1)
-    : 0
+  const dayProgress = Math.min(
+    Math.max((now - dayStartedAt) / GAME_DAY_DURATION, 0),
+    1,
+  )
   const gameMinutes = Math.floor(
     GAME_START_MINUTES +
       dayProgress * (GAME_END_MINUTES - GAME_START_MINUTES),
@@ -499,7 +511,7 @@ function Library({
           {libraryOpen ? "CLOSE" : "OPEN"}
         </button>
 
-        {!libraryOpen && (
+        {!libraryOpen && showOpenNotice && (
           <div className="notice">
             <h2>Notice</h2>
             <p>Click OPEN to open the door</p>
