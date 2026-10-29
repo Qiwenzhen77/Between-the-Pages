@@ -42,15 +42,22 @@
   font-synthesis: none;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
-  min-height: 100dvh;
-  overflow: hidden;
+  min-width: 0;
+  min-height: 100%;
 }
 
 button,
@@ -71,7 +78,10 @@ textarea:focus-visible {
 }
 
 .app {
-  min-height: 100dvh;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .scene-fade {
@@ -103,8 +113,9 @@ textarea:focus-visible {
 
 .entry {
   position: relative;
-  width: 100vw;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: #fff6f1;
 }
@@ -219,7 +230,9 @@ textarea:focus-visible {
   --roof-apex-x: calc(var(--canvas-left) + var(--canvas-width) * 0.5864);
   display: grid;
   position: relative;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   place-items: start center;
   overflow: hidden;
   background: #d5ebf6;
@@ -264,6 +277,8 @@ textarea:focus-visible {
   position: relative;
   z-index: 1;
   width: min(100vw, calc(100dvh * 1.40625));
+  max-width: 100%;
+  max-height: 100dvh;
   aspect-ratio: 1440 / 1024;
   overflow: hidden;
   background: #d5ebf6;
@@ -915,6 +930,7 @@ textarea:focus-visible {
   place-items: center;
   padding: 22px;
   overflow: auto;
+  overscroll-behavior: contain;
   background: rgba(213, 235, 246, 0.78);
   animation: scene-in 220ms ease-out both;
 }
@@ -1345,7 +1361,9 @@ textarea:focus-visible {
 .closing-scene {
   position: relative;
   display: grid;
-  min-height: 100dvh;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   place-items: center;
   overflow: hidden;
   background: #2f5e77;
