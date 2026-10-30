@@ -13,6 +13,8 @@ type JournalEntry = {
   id: string
   date: string
   text: string
+  bookId?: string
+  title?: string
 }
 
 type Scene = "entry" | "library" | "closing"
@@ -21,6 +23,7 @@ type Overlay = "none" | "settings" | "book" | "visitor" | "journal"
 const GAME_DAY_DURATION = 8 * 60 * 1000
 const GAME_START_MINUTES = 8 * 60 + 15
 const GAME_END_MINUTES = 17 * 60
+const RETIRED_BOOK_ID = "harry-potter"
 
 const starterBooks: Book[] = [
   {
@@ -43,7 +46,20 @@ const starterBooks: Book[] = [
     author: "Frances Hodgson Burnett",
     memory: "Some quiet places wake up only when we care for them.",
   },
+  {
+    id: "lantern-keeper",
+    title: "The Lantern Keeper",
+    author: "Between the Pages",
+    memory:
+      "A quiet story about tending a light through a storm reminds me that small acts of care can guide someone home.",
+  },
 ]
+
+const lanternJournalText = `Today, a visitor and I talked about *The Lantern Keeper*, a story set in a small village beside a restless sea. We wondered what it means to keep a light burning when the weather turns and the way home disappears.
+
+We came to see that courage can begin with one person choosing to tend the lamp, but the light grows steadier when neighbors help one another. Each small kindness becomes part of a safe path through the dark.
+
+Our conversation reminded me that looking after a community does not have to be a lonely task. Asking for help can be another way of keeping the light alive.`
 
 const readStored = <T,>(key: string, fallback: T): T => {
   try {
@@ -57,11 +73,19 @@ const readStored = <T,>(key: string, fallback: T): T => {
 function App() {
   const [scene, setScene] = useState<Scene>("entry")
   const [overlay, setOverlay] = useState<Overlay>("none")
-  const [books, setBooks] = useState<Book[]>(() =>
-    readStored("between-pages-books", starterBooks),
-  )
+  const [books, setBooks] = useState<Book[]>(() => {
+    const stored = readStored<Book[]>("between-pages-books", [])
+    const currentBooks = stored.filter((book) => book.id !== RETIRED_BOOK_ID)
+    const storedIds = new Set(currentBooks.map((book) => book.id))
+    return [
+      ...currentBooks,
+      ...starterBooks.filter((book) => !storedIds.has(book.id)),
+    ]
+  })
   const [journals, setJournals] = useState<JournalEntry[]>(() =>
-    readStored("between-pages-journals", []),
+    readStored<JournalEntry[]>("between-pages-journals", []).filter(
+      (entry) => entry.bookId !== RETIRED_BOOK_ID,
+    ),
   )
   const [selectedBook, setSelectedBook] = useState<Book>(starterBooks[0])
   const [query, setQuery] = useState("")
@@ -70,6 +94,10 @@ function App() {
   const [dayStartedAt, setDayStartedAt] = useState(() => Date.now())
   const [visitorStep, setVisitorStep] = useState(0)
   const [activeVisitor, setActiveVisitor] = useState<"brown" | "pink">("brown")
+  const [conversationBookId, setConversationBookId] =
+    useState<"jane-eyre" | "lantern-keeper">("jane-eyre")
+  const [completedBookId, setCompletedBookId] =
+    useState<"jane-eyre" | "lantern-keeper" | null>(null)
   const [pinkVisitorClicked, setPinkVisitorClicked] = useState(false)
   const [selectedJournal, setSelectedJournal] = useState<JournalEntry | null>(
     null,
@@ -121,23 +149,36 @@ function App() {
 
   const startLibrary = () => {
     setDayStartedAt(Date.now())
+    setCompletedBookId(null)
     setScene("library")
     setOverlay("none")
   }
 
-  const closeLibrary = () => {
+  const createClosingJournal = () => {
+    const isLanternDay = completedBookId === "lantern-keeper"
     const entry: JournalEntry = {
-      id: `day-${gameDay}-${Date.now()}`,
+      id: `day-${gameDay}-closing`,
       date: new Date().toISOString().slice(0, 10),
-      text:
-        visitorStep >= 3
+      bookId: isLanternDay ? "lantern-keeper" : undefined,
+      title: isLanternDay ? "A Light Kept for Others" : undefined,
+      text: isLanternDay
+        ? lanternJournalText
+        : visitorStep >= 3
           ? `Day ${gameDay} has come to a close. A visitor left behind a new thought about Jane Eyre, and the quiet library held onto it.`
           : `Day ${gameDay} has come to a close. The books are back on their shelves, waiting for tomorrow's visitors.`,
     }
-    setJournals((current) => [entry, ...current])
+    setJournals((current) => [
+      entry,
+      ...current.filter((journal) => journal.id !== entry.id),
+    ])
     setSelectedJournal(entry)
-    setScene("closing")
     setOverlay("journal")
+  }
+
+  const closeLibrary = () => {
+    setSelectedJournal(null)
+    setOverlay("none")
+    setScene("closing")
   }
 
   return (
@@ -168,10 +209,14 @@ function App() {
             setLibraryOpen(true)
           }}
           onClose={closeLibrary}
+          onClosingTimeDismissed={createClosingJournal}
           onBook={openBook}
           onVisitor={(visitor) => {
             setActiveVisitor(visitor)
             if (visitor === "pink") setPinkVisitorClicked(true)
+            setConversationBookId(
+              Math.random() < 0.5 ? "lantern-keeper" : "jane-eyre",
+            )
             setVisitorStep(1)
             setOverlay("visitor")
           }}
@@ -185,11 +230,13 @@ function App() {
             setScene("entry")
             setLibraryOpen(false)
             setVisitorStep(0)
+            setCompletedBookId(null)
             setGameDay((current) => current + 1)
           }}
           onReopen={() => {
             setScene("library")
             setLibraryOpen(true)
+            setCompletedBookId(null)
             setGameDay((current) => current + 1)
             setDayStartedAt(Date.now())
           }}
@@ -211,13 +258,15 @@ function App() {
       {overlay === "visitor" && (
         <VisitorDialogue
           visitor={activeVisitor}
+          bookId={conversationBookId}
           step={visitorStep}
           onContinue={() => setVisitorStep(2)}
           onChoose={(memory) => {
             setVisitorStep(3)
+            setCompletedBookId(conversationBookId)
             setBooks((current) =>
               current.map((book) =>
-                book.id === "jane-eyre"
+                book.id === conversationBookId
                   ? { ...book, memory: `${book.memory} ${memory}` }
                   : book,
               ),
@@ -295,6 +344,7 @@ type LibraryProps = {
   onBack: () => void
   onOpen: () => void
   onClose: () => void
+  onClosingTimeDismissed: () => void
   onBook: (book: Book) => void
   onVisitor: (visitor: "brown" | "pink") => void
   onJournal: () => void
@@ -313,6 +363,7 @@ function Library({
   onBack,
   onOpen,
   onClose,
+  onClosingTimeDismissed,
   onBook,
   onVisitor,
   onJournal,
@@ -467,8 +518,7 @@ function Library({
     1,
   )
   const gameMinutes = Math.floor(
-    GAME_START_MINUTES +
-      dayProgress * (GAME_END_MINUTES - GAME_START_MINUTES),
+    GAME_START_MINUTES + dayProgress * (GAME_END_MINUTES - GAME_START_MINUTES),
   )
   const gameTime = `${String(Math.floor(gameMinutes / 60)).padStart(2, "0")}:${String(gameMinutes % 60).padStart(2, "0")}`
   const isNight = dayProgress >= 1
@@ -477,7 +527,9 @@ function Library({
 
   return (
     <section
-      className={`library ${libraryOpen ? "is-open" : ""} ${isNight ? "is-night" : ""} scene-fade`}
+      className={`library ${libraryOpen ? "is-open" : ""} ${
+        isNight ? "is-night" : ""
+      } scene-fade`}
     >
       <div className="canvas">
         <div className="library-shell" aria-hidden="true">
@@ -541,10 +593,16 @@ function Library({
         <button
           type="button"
           className="right-book-hotspot"
-          aria-label="Harry Porter"
+          aria-label="The Lantern Keeper"
+          onClick={() => {
+            const lanternKeeper = books.find(
+              (book) => book.id === "lantern-keeper",
+            )
+            if (lanternKeeper) onBook(lanternKeeper)
+          }}
         >
           <span className="right-book-outline" />
-          <span className="right-book-label">&lt;Harry Potter&gt;</span>
+          <span className="right-book-label">&lt;The Lantern Keeper&gt;</span>
         </button>
 
         {query && (
@@ -600,10 +658,17 @@ function Library({
         )}
 
         {libraryOpen && isNight && !nightNoticeDismissed && (
-          <div className="notice night-notice" role="alert" aria-live="assertive">
+          <div
+            className="notice night-notice"
+            role="alert"
+            aria-live="assertive"
+          >
             <button
               className="night-notice-close"
-              onClick={() => setNightNoticeDismissed(true)}
+              onClick={() => {
+                setNightNoticeDismissed(true)
+                onClosingTimeDismissed()
+              }}
               aria-label="Close closing-time notice"
             >
               <img src={`${A}/2c6d6.svg`} alt="" />
@@ -687,39 +752,62 @@ function LibraryFurniture({
   )
 }
 
-function BookDetails({ book, onClose }: { book: Book onClose: () => void }) {
+function BookDetails({ book, onClose }: { book: Book; onClose: () => void }) {
+  const isLanternKeeper = book.id === "lantern-keeper"
+
   return (
     <Modal onClose={onClose} dark>
       <article
-        className="book-detail"
+        className={`book-detail ${isLanternKeeper ? "featured-book-detail" : ""}`}
         onClick={(event) => event.stopPropagation()}
       >
         <img className="book-paper" src={`${A}/4bd46.png`} alt="" />
         <img
-          className="jane-illustration"
-          src={`${A}/49934.png`}
-          alt="Jane Eyre in front of Thornfield"
+          className="book-illustration"
+          src={`${A}/${isLanternKeeper ? "75e0b.png" : "49934.png"}`}
+          alt={
+            isLanternKeeper
+              ? "A cozy illustrated reading nook"
+              : "Jane Eyre in front of Thornfield"
+          }
         />
         <div className="book-left-copy">
           <h2>‹{book.title}›</h2>
-          <p>Love should never come at the cost of self-respect.</p>
+          <p>
+            {isLanternKeeper
+              ? "A little light can make a long way home."
+              : "Love should never come at the cost of self-respect."}
+          </p>
+          {isLanternKeeper && (
+            <p className="book-feature-footer">
+              No one needs to keep the light alone.
+            </p>
+          )}
         </div>
         <div className="book-right-copy">
           <time>28.10.26</time>
           <p>
-            A woman deserves freedom, dignity, and the right to choose her own
-            life.
+            {isLanternKeeper
+              ? "A keeper tends the harbor lamp whenever clouds hide the shore."
+              : "A woman deserves freedom, dignity, and the right to choose her own life."}
           </p>
-          <p>True love is built on equality, honesty, and mutual respect.</p>
+          <p>
+            {isLanternKeeper
+              ? "When a storm arrives, the whole village finds a way to help."
+              : "True love is built on equality, honesty, and mutual respect."}
+          </p>
           <h3>My Thoughts</h3>
           <p>
             {book.memory || "This book is waiting for a memory of your own."}
           </p>
           <blockquote>
-            “I am no bird; and no net ensnares me: I am a free human being with
-            an independent will.”
+            {isLanternKeeper
+              ? "“A lamp is not diminished by guiding another home.”"
+              : "“I am no bird; and no net ensnares me: I am a free human being with an independent will.”"}
           </blockquote>
-          <img src={`${A}/75e0b.png`} alt="A tiny storybook sitting room" />
+          {!isLanternKeeper && (
+            <img src={`${A}/75e0b.png`} alt="A tiny storybook sitting room" />
+          )}
         </div>
       </article>
       <p className="return-hint">Click anywhere to return</p>
@@ -729,17 +817,21 @@ function BookDetails({ book, onClose }: { book: Book onClose: () => void }) {
 
 function VisitorDialogue({
   visitor,
+  bookId,
   step,
   onContinue,
   onChoose,
   onClose,
 }: {
   visitor: "brown" | "pink"
+  bookId: "jane-eyre" | "lantern-keeper"
   step: number
   onContinue: () => void
   onChoose: (memory: string) => void
   onClose: () => void
 }) {
+  const isLanternKeeper = bookId === "lantern-keeper"
+
   return (
     <div
       className={`dialogue-layer ${step <= 1 ? "is-continuable" : ""}`}
@@ -747,7 +839,9 @@ function VisitorDialogue({
     >
       {step <= 1 && (
         <button
-          className={`visitor portrait-visitor ${visitor === "pink" ? "is-pink" : ""}`}
+          className={`visitor portrait-visitor ${
+            visitor === "pink" ? "is-pink" : ""
+          }`}
           onClick={(event) => {
             event.stopPropagation()
             onClose()
@@ -759,9 +853,9 @@ function VisitorDialogue({
       )}
       {step <= 1 && (
         <button className="dialogue-box" onClick={onContinue}>
-          “Sometimes I feel that Jane Eyre is too stubborn. If she had been
-          willing to compromise a little, perhaps she wouldn’t have had to
-          endure so much suffering.”
+          {isLanternKeeper
+            ? "“The keeper is brave to tend the lamp alone. But could the village share the work when the storms return?”"
+            : "“Sometimes I feel that Jane Eyre is too stubborn. If she had been willing to compromise a little, perhaps she wouldn’t have had to endure so much suffering.”"}
           <small>Click anywhere to continue</small>
         </button>
       )}
@@ -770,30 +864,38 @@ function VisitorDialogue({
           <button
             onClick={() =>
               onChoose(
-                "I told a visitor that holding your ground is not the same as stubbornness.",
+                isLanternKeeper
+                  ? "I think one person's steady courage can help everyone find their way."
+                  : "I told a visitor that holding your ground is not the same as stubbornness.",
               )
             }
           >
-            She isn’t being stubborn; she’s holding her ground.
+            {isLanternKeeper
+              ? "One steady light can guide the way."
+              : "She isn’t being stubborn; she’s holding her ground."}
           </button>
           <b>or</b>
           <button
             onClick={() =>
               onChoose(
-                "A visitor reminded me that real life sometimes asks for careful compromise.",
+                isLanternKeeper
+                  ? "I think a shared light grows stronger when everyone lends a hand."
+                  : "A visitor reminded me that real life sometimes asks for careful compromise.",
               )
             }
           >
-            She is worthy of admiration, but reality calls for more careful
-            weighing of factors.
+            {isLanternKeeper
+              ? "The whole village can tend the light together."
+              : "She is worthy of admiration, but reality calls for more careful weighing of factors."}
           </button>
           <small>Please select an answer to continue</small>
         </div>
       )}
       {step >= 3 && (
         <button className="dialogue-box" onClick={onClose}>
-          “Perhaps that is why books stay with us. They leave a question open,
-          even after the last page.”
+          {isLanternKeeper
+            ? "“Perhaps a homeward light is brightest when many hands help keep it burning.”"
+            : "“Perhaps that is why books stay with us. They leave a question open, even after the last page.”"}
           <small>Click anywhere to return</small>
         </button>
       )}
@@ -815,35 +917,73 @@ function Journal({
   onSave: (entry: JournalEntry) => void
 }) {
   if (selected) {
+    const isLanternKeeper = selected.bookId === "lantern-keeper"
+    const selectedIndex = entries.findIndex((entry) => entry.id === selected.id)
+    const hasMultipleEntries = entries.length > 1
+    const showEntry = (direction: -1 | 1) => {
+      const currentIndex = selectedIndex < 0 ? 0 : selectedIndex
+      const nextIndex =
+        (currentIndex + direction + entries.length) % entries.length
+      onSelect(entries[nextIndex])
+    }
+
     return (
       <Modal onClose={onClose} dark>
-        <article
-          className="journal-card"
-          onClick={onClose}
-        >
-          <img src={`${A}/01186.png`} alt="" />
-          <div className="journal-date">
-            <b>{new Date(`${selected.date}T12:00:00`).getDate()}</b>
-            <span>
-              {new Date(`${selected.date}T12:00:00`).toLocaleDateString("en", {
-                weekday: "long",
-                month: "long",
-              })}
-            </span>
-          </div>
-          <h2>Even in memory, hold onto yourself.</h2>
-          <p>{selected.text}</p>
-          <button
-            className="journal-back"
-            onClick={(event) => {
-              event.stopPropagation()
-              onSelect(null)
-            }}
+        <div className="journal-carousel">
+          {hasMultipleEntries && (
+            <button
+              className="journal-arrow journal-arrow-left"
+              onClick={() => showEntry(-1)}
+              aria-label="Previous journal card"
+            >
+              ‹
+            </button>
+          )}
+          <article
+            className={`journal-card ${isLanternKeeper ? "featured-journal" : ""}`}
           >
-            Back to entries
-          </button>
-        </article>
-        <p className="return-hint">Click outside the page to return</p>
+            <img src={`${A}/01186.png`} alt="" />
+            <div className="journal-date">
+              <b>
+                {new Date(`${selected.date}T12:00:00`).getDate()}
+              </b>
+              <span>
+                {new Date(`${selected.date}T12:00:00`).toLocaleDateString(
+                  "en",
+                  {
+                    weekday: "long",
+                    month: "long",
+                  },
+                )}
+              </span>
+            </div>
+            <h2>
+              {selected.title || "Even in memory, hold onto yourself."}
+              {isLanternKeeper && <small>--‹The Lantern Keeper›</small>}
+            </h2>
+            <p>{selected.text}</p>
+            {isLanternKeeper && (
+              <img
+                className="journal-visitor"
+                src={`${A}/pink-dog.png`}
+                alt=""
+              />
+            )}
+            <button className="journal-back" onClick={() => onSelect(null)}>
+              Back to entries
+            </button>
+          </article>
+          {hasMultipleEntries && (
+            <button
+              className="journal-arrow journal-arrow-right"
+              onClick={() => showEntry(1)}
+              aria-label="Next journal card"
+            >
+              ›
+            </button>
+          )}
+          <p className="return-hint">Click outside the page to return</p>
+        </div>
       </Modal>
     )
   }
