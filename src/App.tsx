@@ -23,7 +23,6 @@ type Overlay = "none" | "settings" | "book" | "visitor" | "journal"
 const GAME_DAY_DURATION = 8 * 60 * 1000
 const GAME_START_MINUTES = 8 * 60 + 15
 const GAME_END_MINUTES = 17 * 60
-const RETIRED_BOOK_ID = "harry-potter"
 
 const starterBooks: Book[] = [
   {
@@ -47,19 +46,21 @@ const starterBooks: Book[] = [
     memory: "Some quiet places wake up only when we care for them.",
   },
   {
-    id: "lantern-keeper",
-    title: "The Lantern Keeper",
-    author: "Between the Pages",
+    id: "harry-potter",
+    title: "Harry Potter",
+    author: "J. K. Rowling",
     memory:
-      "A quiet story about tending a light through a storm reminds me that small acts of care can guide someone home.",
+      "This story reminds me that being brave doesn't mean being fearless. Sometimes, it simply means taking one more step when you are afraid. I used to think that people were defined by their talents, but this story made me believe that our choices matter much more. The magical world is beautiful, but what stays with me is not the magic itself. It is the warmth of friendship and the courage to choose what is right.",
   },
 ]
 
-const lanternJournalText = `Today, a visitor and I talked about *The Lantern Keeper*, a story set in a small village beside a restless sea. We wondered what it means to keep a light burning when the weather turns and the way home disappears.
+const harryJournalText = `Today, I chatted about *Harry Potter* with a fellow fan of fantasy literature. We began by discussing the personalities of Harry and Hermione, which naturally led us to talk about courage, choices, friendship, and the process of growing up.
 
-We came to see that courage can begin with one person choosing to tend the lamp, but the light grows steadier when neighbors help one another. Each small kindness becomes part of a safe path through the dark.
+One question, in particular, left a deep impression on me: does a person’s true strength come from their own individual excellence, or from having trustworthy people by their side? I believe both are essential. While independent thinking and the courage to face adversity are vital, the companionship of friends can also help us regain our strength when we are at our lowest points.
 
-Our conversation reminded me that looking after a community does not have to be a lonely task. Asking for help can be another way of keeping the light alive.`
+I really appreciate how the series portrays friendship. Harry, Ron, and Hermione are far from perfect—they argue and make mistakes—yet they remain committed to standing by one another. Perhaps the most precious kind of friendship is one where, despite our differences, we are still willing to understand and support each other.
+
+Our conversation today also reminded me that growing up doesn’t necessarily mean having to handle everything on your own. Learning to believe in yourself—while also learning to accept the kindness of others—is equally important.`
 
 const readStored = <T,>(key: string, fallback: T): T => {
   try {
@@ -75,17 +76,14 @@ function App() {
   const [overlay, setOverlay] = useState<Overlay>("none")
   const [books, setBooks] = useState<Book[]>(() => {
     const stored = readStored<Book[]>("between-pages-books", [])
-    const currentBooks = stored.filter((book) => book.id !== RETIRED_BOOK_ID)
-    const storedIds = new Set(currentBooks.map((book) => book.id))
+    const storedIds = new Set(stored.map((book) => book.id))
     return [
-      ...currentBooks,
+      ...stored,
       ...starterBooks.filter((book) => !storedIds.has(book.id)),
     ]
   })
   const [journals, setJournals] = useState<JournalEntry[]>(() =>
-    readStored<JournalEntry[]>("between-pages-journals", []).filter(
-      (entry) => entry.bookId !== RETIRED_BOOK_ID,
-    ),
+    readStored("between-pages-journals", []),
   )
   const [selectedBook, setSelectedBook] = useState<Book>(starterBooks[0])
   const [query, setQuery] = useState("")
@@ -95,9 +93,9 @@ function App() {
   const [visitorStep, setVisitorStep] = useState(0)
   const [activeVisitor, setActiveVisitor] = useState<"brown" | "pink">("brown")
   const [conversationBookId, setConversationBookId] =
-    useState<"jane-eyre" | "lantern-keeper">("jane-eyre")
+    useState<"jane-eyre" | "harry-potter">("jane-eyre")
   const [completedBookId, setCompletedBookId] =
-    useState<"jane-eyre" | "lantern-keeper" | null>(null)
+    useState<"jane-eyre" | "harry-potter" | null>(null)
   const [pinkVisitorClicked, setPinkVisitorClicked] = useState(false)
   const [selectedJournal, setSelectedJournal] = useState<JournalEntry | null>(
     null,
@@ -155,14 +153,14 @@ function App() {
   }
 
   const createClosingJournal = () => {
-    const isLanternDay = completedBookId === "lantern-keeper"
+    const isHarryDay = completedBookId === "harry-potter"
     const entry: JournalEntry = {
       id: `day-${gameDay}-closing`,
       date: new Date().toISOString().slice(0, 10),
-      bookId: isLanternDay ? "lantern-keeper" : undefined,
-      title: isLanternDay ? "A Light Kept for Others" : undefined,
-      text: isLanternDay
-        ? lanternJournalText
+      bookId: isHarryDay ? "harry-potter" : undefined,
+      title: isHarryDay ? "A Little Magic in My Day" : undefined,
+      text: isHarryDay
+        ? harryJournalText
         : visitorStep >= 3
           ? `Day ${gameDay} has come to a close. A visitor left behind a new thought about Jane Eyre, and the quiet library held onto it.`
           : `Day ${gameDay} has come to a close. The books are back on their shelves, waiting for tomorrow's visitors.`,
@@ -215,7 +213,7 @@ function App() {
             setActiveVisitor(visitor)
             if (visitor === "pink") setPinkVisitorClicked(true)
             setConversationBookId(
-              Math.random() < 0.5 ? "lantern-keeper" : "jane-eyre",
+              Math.random() < 0.5 ? "harry-potter" : "jane-eyre",
             )
             setVisitorStep(1)
             setOverlay("visitor")
@@ -593,16 +591,14 @@ function Library({
         <button
           type="button"
           className="right-book-hotspot"
-          aria-label="The Lantern Keeper"
+          aria-label="Harry Potter"
           onClick={() => {
-            const lanternKeeper = books.find(
-              (book) => book.id === "lantern-keeper",
-            )
-            if (lanternKeeper) onBook(lanternKeeper)
+            const harryPotter = books.find((book) => book.id === "harry-potter")
+            if (harryPotter) onBook(harryPotter)
           }}
         >
           <span className="right-book-outline" />
-          <span className="right-book-label">&lt;The Lantern Keeper&gt;</span>
+          <span className="right-book-label">&lt;Harry Potter&gt;</span>
         </button>
 
         {query && (
@@ -752,48 +748,48 @@ function LibraryFurniture({
   )
 }
 
-function BookDetails({ book, onClose }: { book: Book; onClose: () => void }) {
-  const isLanternKeeper = book.id === "lantern-keeper"
+function BookDetails({ book, onClose }: { book: Book onClose: () => void }) {
+  const isHarryPotter = book.id === "harry-potter"
 
   return (
     <Modal onClose={onClose} dark>
       <article
-        className={`book-detail ${isLanternKeeper ? "featured-book-detail" : ""}`}
+        className={`book-detail ${isHarryPotter ? "harry-detail" : ""}`}
         onClick={(event) => event.stopPropagation()}
       >
         <img className="book-paper" src={`${A}/4bd46.png`} alt="" />
         <img
           className="book-illustration"
-          src={`${A}/${isLanternKeeper ? "75e0b.png" : "49934.png"}`}
+          src={`${A}/${isHarryPotter ? "harry-potter.png" : "49934.png"}`}
           alt={
-            isLanternKeeper
-              ? "A cozy illustrated reading nook"
+            isHarryPotter
+              ? "Harry Potter looking toward Hogwarts"
               : "Jane Eyre in front of Thornfield"
           }
         />
         <div className="book-left-copy">
           <h2>‹{book.title}›</h2>
           <p>
-            {isLanternKeeper
-              ? "A little light can make a long way home."
+            {isHarryPotter
+              ? "Love is the strongest magic of all."
               : "Love should never come at the cost of self-respect."}
           </p>
-          {isLanternKeeper && (
-            <p className="book-feature-footer">
-              No one needs to keep the light alone.
+          {isHarryPotter && (
+            <p className="book-left-footer">
+              Our choices define who we truly are.
             </p>
           )}
         </div>
         <div className="book-right-copy">
           <time>28.10.26</time>
           <p>
-            {isLanternKeeper
-              ? "A keeper tends the harbor lamp whenever clouds hide the shore."
+            {isHarryPotter
+              ? "“It is our choices that show what we truly are, far more than our abilities.”"
               : "A woman deserves freedom, dignity, and the right to choose her own life."}
           </p>
           <p>
-            {isLanternKeeper
-              ? "When a storm arrives, the whole village finds a way to help."
+            {isHarryPotter
+              ? "Friendship makes even the darkest journey bearable."
               : "True love is built on equality, honesty, and mutual respect."}
           </p>
           <h3>My Thoughts</h3>
@@ -801,11 +797,11 @@ function BookDetails({ book, onClose }: { book: Book; onClose: () => void }) {
             {book.memory || "This book is waiting for a memory of your own."}
           </p>
           <blockquote>
-            {isLanternKeeper
-              ? "“A lamp is not diminished by guiding another home.”"
+            {isHarryPotter
+              ? "“Even in darkness, we can choose to find the light.”"
               : "“I am no bird; and no net ensnares me: I am a free human being with an independent will.”"}
           </blockquote>
-          {!isLanternKeeper && (
+          {!isHarryPotter && (
             <img src={`${A}/75e0b.png`} alt="A tiny storybook sitting room" />
           )}
         </div>
@@ -824,13 +820,13 @@ function VisitorDialogue({
   onClose,
 }: {
   visitor: "brown" | "pink"
-  bookId: "jane-eyre" | "lantern-keeper"
+  bookId: "jane-eyre" | "harry-potter"
   step: number
   onContinue: () => void
   onChoose: (memory: string) => void
   onClose: () => void
 }) {
-  const isLanternKeeper = bookId === "lantern-keeper"
+  const isHarryPotter = bookId === "harry-potter"
 
   return (
     <div
@@ -853,8 +849,8 @@ function VisitorDialogue({
       )}
       {step <= 1 && (
         <button className="dialogue-box" onClick={onContinue}>
-          {isLanternKeeper
-            ? "“The keeper is brave to tend the lamp alone. But could the village share the work when the storms return?”"
+          {isHarryPotter
+            ? "“I’ve always felt that what enabled Harry to defeat Voldemort—beyond just his courage—was, more importantly, the fact that he always had friends by his side.”"
             : "“Sometimes I feel that Jane Eyre is too stubborn. If she had been willing to compromise a little, perhaps she wouldn’t have had to endure so much suffering.”"}
           <small>Click anywhere to continue</small>
         </button>
@@ -864,28 +860,28 @@ function VisitorDialogue({
           <button
             onClick={() =>
               onChoose(
-                isLanternKeeper
-                  ? "I think one person's steady courage can help everyone find their way."
+                isHarryPotter
+                  ? "True strength comes from within."
                   : "I told a visitor that holding your ground is not the same as stubbornness.",
               )
             }
           >
-            {isLanternKeeper
-              ? "One steady light can guide the way."
+            {isHarryPotter
+              ? "True strength comes from within."
               : "She isn’t being stubborn; she’s holding her ground."}
           </button>
           <b>or</b>
           <button
             onClick={() =>
               onChoose(
-                isLanternKeeper
-                  ? "I think a shared light grows stronger when everyone lends a hand."
+                isHarryPotter
+                  ? "True strength comes from companionship."
                   : "A visitor reminded me that real life sometimes asks for careful compromise.",
               )
             }
           >
-            {isLanternKeeper
-              ? "The whole village can tend the light together."
+            {isHarryPotter
+              ? "True strength comes from companionship."
               : "She is worthy of admiration, but reality calls for more careful weighing of factors."}
           </button>
           <small>Please select an answer to continue</small>
@@ -893,8 +889,8 @@ function VisitorDialogue({
       )}
       {step >= 3 && (
         <button className="dialogue-box" onClick={onClose}>
-          {isLanternKeeper
-            ? "“Perhaps a homeward light is brightest when many hands help keep it burning.”"
+          {isHarryPotter
+            ? "“I think both kinds of strength matter. Even the bravest person needs friends beside them.”"
             : "“Perhaps that is why books stay with us. They leave a question open, even after the last page.”"}
           <small>Click anywhere to return</small>
         </button>
@@ -917,7 +913,7 @@ function Journal({
   onSave: (entry: JournalEntry) => void
 }) {
   if (selected) {
-    const isLanternKeeper = selected.bookId === "lantern-keeper"
+    const isHarryPotter = selected.bookId === "harry-potter"
     const selectedIndex = entries.findIndex((entry) => entry.id === selected.id)
     const hasMultipleEntries = entries.length > 1
     const showEntry = (direction: -1 | 1) => {
@@ -940,29 +936,33 @@ function Journal({
             </button>
           )}
           <article
-            className={`journal-card ${isLanternKeeper ? "featured-journal" : ""}`}
+            className={`journal-card ${isHarryPotter ? "harry-journal" : ""}`}
           >
             <img src={`${A}/01186.png`} alt="" />
             <div className="journal-date">
               <b>
-                {new Date(`${selected.date}T12:00:00`).getDate()}
+                {isHarryPotter
+                  ? "28"
+                  : new Date(`${selected.date}T12:00:00`).getDate()}
               </b>
               <span>
-                {new Date(`${selected.date}T12:00:00`).toLocaleDateString(
-                  "en",
-                  {
-                    weekday: "long",
-                    month: "long",
-                  },
-                )}
+                {isHarryPotter
+                  ? "Wednesday October"
+                  : new Date(`${selected.date}T12:00:00`).toLocaleDateString(
+                      "en",
+                      {
+                        weekday: "long",
+                        month: "long",
+                      },
+                    )}
               </span>
             </div>
             <h2>
               {selected.title || "Even in memory, hold onto yourself."}
-              {isLanternKeeper && <small>--‹The Lantern Keeper›</small>}
+              {isHarryPotter && <small>--‹Harry Potter›</small>}
             </h2>
             <p>{selected.text}</p>
-            {isLanternKeeper && (
+            {isHarryPotter && (
               <img
                 className="journal-visitor"
                 src={`${A}/pink-dog.png`}
