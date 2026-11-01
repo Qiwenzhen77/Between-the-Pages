@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react"
 
-const A = "/assets"
+const A = `${import.meta.env.BASE_URL}assets`
 
 type Book = {
   id: string
@@ -29,7 +29,9 @@ let backgroundAudioPlayRequest: Promise<void> | null = null
 
 function getBackgroundAudio() {
   if (!backgroundAudio) {
-    backgroundAudio = new Audio("/audio/first_light_particles.wav")
+    backgroundAudio = new Audio(
+      `${import.meta.env.BASE_URL}audio/first_light_particles.wav`,
+    )
     backgroundAudio.loop = true
     backgroundAudio.volume = 0.18
   }

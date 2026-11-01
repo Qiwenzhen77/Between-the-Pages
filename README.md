@@ -2,6 +2,10 @@
 
 *A cozy interactive library where books become memories.*
 
+## Live Demo
+
+[Open Between the Pages](https://qiwenzhen77.github.io/Between-the-Pages/)
+
 ## 1. Project Overview
 
 Between the Pages is an interactive reading companion that turns a personal reading collection into a small virtual library.
@@ -79,7 +83,6 @@ The following screenshots demonstrate the main features of Between the Pages:
 - **Book Details:** Book introductions, themes, and reading content.
 - **Reading Companion:** Interactive conversations and opinion choices.
 - **Journal:** The daily reading reflection generated from the interaction.
-
 
 ## 6. Known Limitations
 
