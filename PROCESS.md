@@ -106,7 +106,5 @@ Overall, this project helped me better understand the process of turning a visua
 - **Interface design:** Created in Figma.
 - **AI-assisted development:** Figma AI / Figma Make and ChatGPT.
 - **Code and implementation:** Developed with AI assistance and reviewed during the development process.
-- **Visual assets:** Original Figma design assets and any external assets used in the project should be credited individually.
-- **Fonts, images, and audio:** Credit the original creators or source websites where applicable.
 
 No external user data was intentionally collected for this prototype.
