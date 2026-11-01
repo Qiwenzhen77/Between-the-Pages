@@ -43,22 +43,19 @@ Another important adjustment was deciding not to let AI freely redesign the inte
 
 ## 4. Testing and Feedback
 
-I used the Figma Make preview to test the prototype during development.
+During development, I invited several friends to try the prototype through the Figma Make preview. I asked them to explore the library, interact with different books and visitors, and try the journal feature.
 
-My testing focused on the basic user journey:
+Overall, they really liked the visual style of the experience. They felt that the warm colours and hand-drawn illustrations created a relaxing atmosphere and made the library feel like a comfortable place to spend time. Their positive reactions made me feel that the visual direction was working well.
 
-1. Entering the experience from the opening screen.
-2. Moving into the library.
-3. Selecting and exploring books.
-4. Checking whether the main navigation was understandable.
-5. Opening the journal and checking the writing experience.
-6. Returning to other scenes and closing the library.
+However, their feedback also helped me identify several areas that could be improved:
 
-During this process, I paid attention to whether the interactions were clear and whether the different screens felt connected.
+1. **More sound effects:** Adding more sound effects to interactions could make the experience feel more lively and immersive.
+2. **Background music options:** Users could be given a choice of different background music, or the option to switch to white noise for a quieter reading environment.
+3. **Importing reading records:** It would be useful to allow users to import their reading history and book records from other reading apps, so they do not have to add everything manually.
+4. **Deeper conversations with visitors:** The conversations with book visitors could include more topics and more meaningful exchanges, making each interaction feel less repetitive.
+5. **More flexible responses:** Instead of only choosing from fixed options, users could have more freedom to type their own replies and express their thoughts naturally.
 
-One issue I identified was that visual elements alone do not always communicate their function. A button or illustrated object may look interactive, but users still need clear feedback after clicking it. This made me pay more attention to clickable areas, navigation feedback, and the consistency of interactions.
-
-At this stage, the testing was mainly self-testing through the prototype preview. I have not yet completed a formal user study with external participants, so further testing with classmates or other readers would be useful.
+These tests helped me realise that the visual atmosphere is only one part of the experience. To make the library feel more personal and engaging, I also need to consider sound, conversation depth, and how much freedom users have when interacting with the characters. These are the main areas I would like to develop further.
 
 ## 5. Use of AI Tools
 
