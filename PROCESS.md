@@ -93,15 +93,3 @@ I also realized that a personal library can be more than a place to organize boo
 
 If I continue developing this project, I would like to improve the visitor dialogue system, make the journal experience more personalized, and introduce more subtle sound and animation details.
 
-I would also like to conduct more user testing to understand whether the experience feels intuitive and emotionally engaging to other readers.
-
-Overall, this project helped me better understand the process of turning a visual concept into an interactive experience, and how to use AI as a supporting tool while maintaining my own design decisions.
-
-## 7. Credits
-
-- **Original concept and visual direction:** My own work.
-- **Interface design:** Created in Figma.
-- **AI-assisted development:** Figma AI / Figma Make and ChatGPT.
-- **Code and implementation:** Developed with AI assistance and reviewed during the development process.
-
-No external user data was intentionally collected for this prototype.
