@@ -71,6 +71,7 @@ pnpm preview
 
 ## 5. Screenshots
 
+Please check the screenshots in the `docs/` folder.
 The following screenshots demonstrate the main features of Between the Pages:
 
 - **Opening Screen:** The main interface and overall visual atmosphere.
@@ -79,16 +80,6 @@ The following screenshots demonstrate the main features of Between the Pages:
 - **Reading Companion:** Interactive conversations and opinion choices.
 - **Journal:** The daily reading reflection generated from the interaction.
 
-Add your screenshots to the `docs/` folder:
-
-```text
-docs/
-├── opening-screen.png
-├── library.png
-├── book-details.png
-├── reading-companion.png
-└── journal.png
-```
 
 ## 6. Known Limitations
 
