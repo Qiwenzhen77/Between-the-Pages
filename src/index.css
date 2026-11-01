@@ -84,6 +84,30 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
+.music-prompt {
+  position: fixed;
+  z-index: 120;
+  top: clamp(14px, 2.4vw, 28px);
+  right: clamp(14px, 2.4vw, 28px);
+  padding: 8px 14px;
+  border: 1px solid rgba(73, 118, 129, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 250, 246, 0.94);
+  box-shadow: 0 4px 16px rgba(73, 69, 63, 0.1);
+  color: #497681;
+  font-family: 'Indie Flower:Regular', cursive;
+  font-size: 19px;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.music-prompt:hover {
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(73, 69, 63, 0.15);
+}
+
 .scene-fade {
   animation: scene-in 480ms ease-out both;
 }

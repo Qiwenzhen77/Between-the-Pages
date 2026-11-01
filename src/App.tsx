@@ -24,6 +24,31 @@ const GAME_DAY_DURATION = 8 * 60 * 1000
 const GAME_START_MINUTES = 8 * 60 + 15
 const GAME_END_MINUTES = 17 * 60
 
+let backgroundAudio: HTMLAudioElement | null = null
+let backgroundAudioPlayRequest: Promise<void> | null = null
+
+function getBackgroundAudio() {
+  if (!backgroundAudio) {
+    backgroundAudio = new Audio("/audio/first_light_particles.wav")
+    backgroundAudio.loop = true
+    backgroundAudio.volume = 0.18
+  }
+
+  return backgroundAudio
+}
+
+function playBackgroundMusic() {
+  const audio = getBackgroundAudio()
+  if (backgroundAudioPlayRequest) return backgroundAudioPlayRequest
+  if (!audio.paused) return Promise.resolve()
+
+  backgroundAudioPlayRequest = audio.play().finally(() => {
+    backgroundAudioPlayRequest = null
+  })
+
+  return backgroundAudioPlayRequest
+}
+
 const starterBooks: Book[] = [
   {
     id: "jane-eyre",
@@ -288,7 +313,54 @@ function App() {
           }}
         />
       )}
+      <BackgroundMusicPrompt />
     </main>
+  )
+}
+
+function BackgroundMusicPrompt() {
+  const [needsUserGesture, setNeedsUserGesture] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    const audio = getBackgroundAudio()
+    const handlePlaying = () => {
+      if (active) setNeedsUserGesture(false)
+    }
+
+    audio.addEventListener("playing", handlePlaying)
+    if (!audio.paused && !backgroundAudioPlayRequest) {
+      setNeedsUserGesture(false)
+    } else {
+      void playBackgroundMusic()
+        .then(() => {
+          if (active) setNeedsUserGesture(false)
+        })
+        .catch(() => {
+          if (active) setNeedsUserGesture(true)
+        })
+    }
+
+    return () => {
+      active = false
+      audio.removeEventListener("playing", handlePlaying)
+    }
+  }, [])
+
+  if (!needsUserGesture) return null
+
+  return (
+    <button
+      className="music-prompt"
+      type="button"
+      onClick={() => {
+        void playBackgroundMusic()
+          .then(() => setNeedsUserGesture(false))
+          .catch(() => setNeedsUserGesture(true))
+      }}
+    >
+      Tap to enable music ♫
+    </button>
   )
 }
 
@@ -748,7 +820,7 @@ function LibraryFurniture({
   )
 }
 
-function BookDetails({ book, onClose }: { book: Book onClose: () => void }) {
+function BookDetails({ book, onClose }: { book: Book; onClose: () => void }) {
   const isHarryPotter = book.id === "harry-potter"
 
   return (
